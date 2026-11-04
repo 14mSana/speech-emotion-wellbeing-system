@@ -1,0 +1,1 @@
+"""Keeps the model-artifact directory visible without storing model binaries."""
