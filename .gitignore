@@ -12,6 +12,7 @@ venv/
 # Testing
 .pytest_cache/
 .coverage
+.pytest-tmp/
 
 # Dataset (retain only directory markers)
 data/raw/*
