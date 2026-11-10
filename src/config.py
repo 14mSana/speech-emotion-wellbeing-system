@@ -12,11 +12,22 @@ MODEL_DIR = PROJECT_ROOT / "models"
 
 EMOTION_LABELS: tuple[str, ...] = ("neutral", "calm", "happy", "sad", "angry")
 N_MFCC = 13
+# Existing model artifacts use this immutable 32-value schema. The opt-in v2
+# schema adds requested spectral descriptors without changing those artifacts.
+FEATURE_VERSION_V1 = "acoustic_v1_32"
 FEATURE_NAMES: tuple[str, ...] = (
     *(f"mfcc_{index:02d}_mean" for index in range(1, N_MFCC + 1)),
     *(f"mfcc_{index:02d}_std" for index in range(1, N_MFCC + 1)),
     "pitch_mean", "pitch_std", "rms_mean", "rms_std", "zcr_mean", "zcr_std",
 )
+SPECTRAL_FEATURE_NAMES: tuple[str, ...] = (
+    "spectral_centroid_mean", "spectral_centroid_std",
+    "spectral_bandwidth_mean", "spectral_bandwidth_std",
+    "spectral_rolloff_mean", "spectral_rolloff_std",
+    "spectral_contrast_mean", "spectral_contrast_std",
+)
+FEATURE_VERSION_V2 = "acoustic_v2_40_spectral"
+EXTENDED_FEATURE_NAMES: tuple[str, ...] = (*FEATURE_NAMES, *SPECTRAL_FEATURE_NAMES)
 
 
 @dataclass(frozen=True)
@@ -31,3 +42,5 @@ class AudioPreprocessingConfig:
 
 if len(FEATURE_NAMES) != 32:
     raise RuntimeError("The baseline feature schema must contain exactly 32 features.")
+if len(EXTENDED_FEATURE_NAMES) != 40:
+    raise RuntimeError("The extended feature schema must contain exactly 40 features.")

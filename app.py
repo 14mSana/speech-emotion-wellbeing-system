@@ -1,12 +1,11 @@
-"""Future Streamlit entry point for speech emotion prediction.
+"""Thin Streamlit entry point for the speech-emotion baseline interface."""
 
-Phase 1 deliberately contains no user interface or model-loading behavior.
-"""
+from src.ui.streamlit_app import render_app
 
 
 def main() -> None:
-    """Start the Streamlit application when the UI is implemented."""
-    raise NotImplementedError("The Streamlit application is not implemented in Phase 1.")
+    """Start the local Streamlit interface."""
+    render_app()
 
 
 if __name__ == "__main__":

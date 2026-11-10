@@ -6,10 +6,10 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from src.audio.features import extract_features
+from src.audio.features import extract_extended_features, extract_features
 from src.audio.loading import load_wav, validate_wav_path
 from src.audio.preprocessing import preprocess_audio
-from src.config import AudioPreprocessingConfig, FEATURE_NAMES
+from src.config import AudioPreprocessingConfig, EXTENDED_FEATURE_NAMES, FEATURE_NAMES
 
 
 def _sine_wave(sample_rate: int = 16_000, duration: float = 0.25) -> np.ndarray:
@@ -97,3 +97,28 @@ def test_feature_extraction_rejects_too_short_audio() -> None:
     """Recordings without one analysis frame are invalid for pitch extraction."""
     with pytest.raises(ValueError, match="at least 2048 samples"):
         extract_features(np.array([0.0, 0.1], dtype=np.float32), 22_050)
+
+
+def test_extended_features_are_ordered_finite_and_deterministic() -> None:
+    """v2 preserves v1 exactly and provides finite spectral statistics."""
+    config = AudioPreprocessingConfig(sample_rate=16_000, trim_silence=False)
+    tone = _sine_wave()
+    silence = np.zeros(16_000, dtype=np.float32)
+
+    first = extract_extended_features(tone, 16_000, config)
+    second = extract_extended_features(tone, 16_000, config)
+    silent = extract_extended_features(silence, 16_000, config)
+
+    assert len(first) == len(EXTENDED_FEATURE_NAMES) == 40
+    assert first[: len(FEATURE_NAMES)] == extract_features(tone, 16_000, config)
+    assert first == second
+    assert np.isfinite(first).all()
+    assert np.isfinite(silent).all()
+
+
+def test_extended_features_share_invalid_and_short_audio_contract() -> None:
+    """v2 reports invalid input instead of emitting fabricated features."""
+    with pytest.raises(ValueError, match="NaN or infinite"):
+        extract_extended_features(np.array([0.0, np.inf]), 16_000)
+    with pytest.raises(ValueError, match="at least 2048 samples"):
+        extract_extended_features(np.array([0.0, 0.1], dtype=np.float32), 22_050)
